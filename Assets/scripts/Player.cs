@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.SceneManagement;
+﻿using UnityEngine;
 
 public class Player : MonoBehaviour
 {
@@ -17,79 +14,127 @@ public class Player : MonoBehaviour
     public GameObject respawnRock;
     public GameObject bridgeSupport;
     public GameObject levelChanger;
-
-    public Rigidbody2D body;
-
+    public Rigidbody2D rockBody;
+    
+    public float walkSpeed;
     [Range(1, 10)]
     public float jumpVelocity;
-    public float walkSpeed;
     public bool doubleJump;
     private int jumpCounter = 0;
-
-    // collisions
+    private bool jumpPressed;
     public bool onGround;
+
+    // ----- better jump -----
+    public float fallMultiplier = 2.5f;
+    public float lowJumpMultiplier = 2f;
+
+    // --- manual physics ---
+    private float timerSimulated;
 
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        Screen.SetResolution(450, 800, true); //(good fps)
+        /*Create option so user can use this. Conserves mobile battery running on platform specific fps.
+         * Maybe let user choose fps.*/
+        //QualitySettings.vSyncCount = 0;
+        //Application.targetFrameRate = -1 or 60 or value; // needs vSyncCount = 0
     }
 
-    // Update is called once per frame
-    void Update()
+    // Called every physhics step
+    private void FixedUpdate()
     {
-        // ----------------------------------------------------------
-        // reload scene
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            SceneManager.LoadScene("Level1");
-        }
-
-        // ----------------------------------------------------------
-        // auto run
+        GroundCheck();
         Movement();
+        Jump();
+    }
 
-        // ----------------------------------------------------------
+    private void GroundCheck()
+    {
         // check ground collision
-        onGround = Physics2D.OverlapArea(new Vector2(transform.position.x - 0.35f, transform.position.y - 0.5f), 
-            new Vector2(transform.position.x + 0.35f, transform.position.y - 0.5f), groundLayers);
-        
+        onGround = Physics2D.OverlapArea(new Vector2(transform.position.x - 0.35f, transform.position.y - 0.40f),
+            new Vector2(transform.position.x + 0.35f, transform.position.y - 0.40f), groundLayers);
+
         if (onGround)
         {
             jumpCounter = 0;
-        }
-
-        // ----------------------------------------------------------
-        // jump input
-        if (Input.GetMouseButtonDown(0) || Input.GetButtonDown("Jump"))
-        {
-            if (jumpCounter == 0)
-            {
-                rb.velocity = Vector2.up * jumpVelocity;
-                jumpCounter++;
-            }
-            else if (jumpCounter == 1)
-            {
-                if (doubleJump)
-                {
-                    rb.velocity = Vector2.up * jumpVelocity;
-                    jumpCounter++;
-                    FindObjectOfType<RippleEffect>().Emit(Camera.main.WorldToViewportPoint(transform.position)); // shader
-                }
-            }
         }
     }
 
     void Movement()
     {
         // horizontal
-        rb.velocity = new Vector2(walkSpeed, rb.velocity.y);
-        //Debug.Log("Velo: "+rb.velocity);
-
-        // vertical (to climb walls) - 
-        // TODO
+        rb.velocity = new Vector2(walkSpeed * Time.deltaTime, rb.velocity.y); // testar com deltatime
     }
 
+    private void Jump()
+    {
+        if (jumpPressed)
+        {
+            jumpPressed = false;
+            // first jump
+            if (jumpCounter == 0)
+            {
+                JumpAction();
+            }
+            // second jump
+            else if (jumpCounter == 1)
+            {
+                if (doubleJump)
+                {
+                    JumpAction();
+                    FindObjectOfType<RippleEffect>().Emit(Camera.main.WorldToViewportPoint(transform.position)); // shader
+                }
+            }
+        }
+
+        BetterJump();
+    }
+
+    private void JumpAction()
+    {
+        rb.velocity = Vector2.up * jumpVelocity;
+        jumpCounter++;
+    }
+
+    private void BetterJump()
+    {
+        // falling
+        if (rb.velocity.y < 0)
+        {
+            rb.velocity += Vector2.up * Physics2D.gravity.y * (fallMultiplier - 1) * Time.deltaTime;
+        }
+
+        // climbing
+        else if (rb.velocity.y > 0 && !Input.GetButton("Jump") && !Input.GetMouseButton(0))
+        {
+            rb.velocity += Vector2.up * Physics2D.gravity.y * (lowJumpMultiplier - 1) * Time.deltaTime;
+        }
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        // jump input
+        if ((Input.GetMouseButtonDown(0) || Input.GetButtonDown("Jump")))
+        {
+            jumpPressed = true;
+        }
+
+        // tests, remove after
+        if (Input.GetKeyDown(KeyCode.V))
+        {
+            walkSpeed = 350;
+        }
+        if (Input.GetKeyDown(KeyCode.B))
+        {
+            walkSpeed = 200;
+        }
+        // tests, remove after
+    }
+
+    // ----------------------------------------------------------------------------------------------------------
     private void OnTriggerEnter2D(Collider2D collision)
     {
         // bridge support
@@ -101,17 +146,17 @@ public class Player : MonoBehaviour
         // speed
         if (collision.tag == "speed")
         {
-            walkSpeed = 5;
+            walkSpeed = 230;
         }
 
         if (collision.tag == "speed2")
         {
-            walkSpeed = 6;
+            walkSpeed = 350;
         }
 
         if (collision.tag == "default_speed")
         {
-            walkSpeed = 4;
+            walkSpeed = 200;
         }
 
         // trap
@@ -119,7 +164,7 @@ public class Player : MonoBehaviour
         {
             if (GameObject.Find("rock_trap"))
             {
-                body.transform.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Dynamic;
+                rockBody.transform.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Dynamic;
             }
         }
 
@@ -146,13 +191,13 @@ public class Player : MonoBehaviour
         {
             gameObject.transform.position = respawn5.transform.position;
         }
-        
+
         // win game
         if (collision.tag == "dog")
         {
             //// Load replay menu - maneira antiga
             //canvasObject.SetActive(true);
-            
+
             // nova maneira com level changer
             levelChanger.GetComponent<LevelChanger>().FadeToNextLevel();
         }
@@ -166,7 +211,7 @@ public class Player : MonoBehaviour
             gameObject.transform.position = respawn3.transform.position;
 
             // respawnPedra
-            body.transform.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Static;
+            rockBody.transform.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Static;
             collision.gameObject.transform.position = respawnRock.transform.position;
             //Object.Destroy(collision.gameObject);
         }
