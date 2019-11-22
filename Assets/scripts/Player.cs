@@ -4,8 +4,7 @@ public class Player : MonoBehaviour
 {
     private Rigidbody2D rb;
     public LayerMask groundLayers;
-
-    public GameObject canvasObject;
+    
     public GameObject respawn1;
     public GameObject respawn2;
     public GameObject respawn3;
@@ -28,9 +27,6 @@ public class Player : MonoBehaviour
     public float fallMultiplier = 2.5f;
     public float lowJumpMultiplier = 2f;
 
-    // --- manual physics ---
-    private float timerSimulated;
-
     // Start is called before the first frame update
     void Start()
     {
@@ -52,9 +48,9 @@ public class Player : MonoBehaviour
 
     private void GroundCheck()
     {
-        // check ground collision
-        onGround = Physics2D.OverlapArea(new Vector2(transform.position.x - 0.35f, transform.position.y - 0.40f),
-            new Vector2(transform.position.x + 0.35f, transform.position.y - 0.40f), groundLayers);
+        // check ground collision (with capsule collider)
+        onGround = Physics2D.OverlapArea(new Vector2(transform.position.x - 0.25f, transform.position.y - 0.40f),
+            new Vector2(transform.position.x + 0.25f, transform.position.y - 0.40f), groundLayers);
 
         if (onGround)
         {
@@ -65,7 +61,7 @@ public class Player : MonoBehaviour
     void Movement()
     {
         // horizontal
-        rb.velocity = new Vector2(walkSpeed * Time.deltaTime, rb.velocity.y); // testar com deltatime
+        rb.velocity = new Vector2(walkSpeed * Time.deltaTime, rb.velocity.y);
     }
 
     private void Jump()
@@ -195,10 +191,6 @@ public class Player : MonoBehaviour
         // win game
         if (collision.tag == "dog")
         {
-            //// Load replay menu - maneira antiga
-            //canvasObject.SetActive(true);
-
-            // nova maneira com level changer
             levelChanger.GetComponent<LevelChanger>().FadeToNextLevel();
         }
     }
