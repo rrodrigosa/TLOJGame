@@ -16,6 +16,8 @@ TagManager:
   - spike2
   - fall1
   - fall2
+  - verticalSlope
+  - groundStop
   layers:
   - Default
   - TransparentFX

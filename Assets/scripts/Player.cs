@@ -1,10 +1,18 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 
 public class Player : MonoBehaviour
 {
+    // Auxilliary
     private Rigidbody2D rb;
+    private Transform spriteTransform;
+    [Header("Auxilliary")]
     public LayerMask groundLayers;
-    
+    public ParticleSystem jumpDust;
+    public Animator animator;
+
+    // scene objects
+    [Header("Scene Objects")]
     public GameObject respawn1;
     public GameObject respawn2;
     public GameObject respawn3;
@@ -14,28 +22,36 @@ public class Player : MonoBehaviour
     public GameObject bridgeSupport;
     public GameObject levelChanger;
     public Rigidbody2D rockBody;
-    
+
+    // player stats
+    [Header("Player Stats")]
     public float walkSpeed;
     [Range(1, 10)]
     public float jumpVelocity;
-    public bool doubleJump;
-    private int jumpCounter = 0;
-    private bool jumpPressed;
-    public bool onGround;
-
-    // ----- better jump -----
     public float fallMultiplier = 2.5f;
     public float lowJumpMultiplier = 2f;
+
+    // internal
+    public bool doubleJump; // if double jump is enabled
+    public bool onGround;
+    private bool jumpPressed; // if input for jump was pressed
+    private int jumpCounter = 0; // first or second jump
+    private bool canMove = true; // if the user can move
+
+    // jump animation scale
+    private bool fallAux;
+    private bool groundAux;
+
 
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+
+        // Create options so user can choose configurations. Can conserve mobile battery running on platform specific fps.
         Screen.SetResolution(450, 800, true); //(good fps)
-        /*Create option so user can use this. Conserves mobile battery running on platform specific fps.
-         * Maybe let user choose fps.*/
-        //QualitySettings.vSyncCount = 0;
-        //Application.targetFrameRate = -1 or 60 or value; // needs vSyncCount = 0
+        QualitySettings.vSyncCount = 0;
+        Application.targetFrameRate = 60; // -1 or any fps value (30, 60, etc) | needs vSyncCount = 0
     }
 
     // Called every physhics step
@@ -55,13 +71,17 @@ public class Player : MonoBehaviour
         if (onGround)
         {
             jumpCounter = 0;
+            JumpStretchGroundImpact();
         }
     }
 
     void Movement()
     {
         // horizontal
-        rb.velocity = new Vector2(walkSpeed * Time.deltaTime, rb.velocity.y);
+        if (canMove)
+        {
+            rb.velocity = new Vector2(walkSpeed * Time.deltaTime, rb.velocity.y);
+        }
     }
 
     private void Jump()
@@ -72,19 +92,25 @@ public class Player : MonoBehaviour
             // first jump
             if (jumpCounter == 0)
             {
+
+                JumpDustParticle();
                 JumpAction();
+                JumpStretchUp();
+                canMove = true;
+
             }
             // second jump
             else if (jumpCounter == 1)
             {
+                canMove = true;
                 if (doubleJump)
                 {
-                    JumpAction();
                     FindObjectOfType<RippleEffect>().Emit(Camera.main.WorldToViewportPoint(transform.position)); // shader
+                    JumpAction();
+                    JumpStretchUp();
                 }
             }
         }
-
         BetterJump();
     }
 
@@ -100,6 +126,10 @@ public class Player : MonoBehaviour
         if (rb.velocity.y < 0)
         {
             rb.velocity += Vector2.up * Physics2D.gravity.y * (fallMultiplier - 1) * Time.deltaTime;
+            if (!onGround)
+            {
+                JumpStretchDown();
+            }
         }
 
         // climbing
@@ -117,17 +147,6 @@ public class Player : MonoBehaviour
         {
             jumpPressed = true;
         }
-
-        // tests, remove after
-        if (Input.GetKeyDown(KeyCode.V))
-        {
-            walkSpeed = 350;
-        }
-        if (Input.GetKeyDown(KeyCode.B))
-        {
-            walkSpeed = 200;
-        }
-        // tests, remove after
     }
 
     // ----------------------------------------------------------------------------------------------------------
@@ -205,7 +224,59 @@ public class Player : MonoBehaviour
             // respawnPedra
             rockBody.transform.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Static;
             collision.gameObject.transform.position = respawnRock.transform.position;
-            //Object.Destroy(collision.gameObject);
+        }
+
+        // testing ground slippery with diferent tags
+        //if (collision.gameObject.tag == "groundStop")
+        //{
+        //    Debug.Log("Ground");
+        //    rb.velocity = new Vector2(0, rb.velocity.y);
+        //}
+
+        //if (collision.gameObject.tag == "verticalSlope")
+        //{
+        //    Debug.Log("Vertical");
+        //    canMove = false;
+        //}
+    }
+
+    // ----------------------------------------------------------------------------------------------------------
+    private void JumpDustParticle()
+    {
+        if (onGround)
+        {
+            jumpDust.Play();
+        }
+    }
+
+    private void JumpStretchUp()
+    {
+        fallAux = true;
+        // climb
+        if (rb.velocity.y > 0)
+        {
+            animator.SetTrigger("jumpUp");
+        }
+    }
+
+    private void JumpStretchDown()
+    {
+        // fall
+        if (fallAux)
+        {
+            animator.SetTrigger("jumpDown");
+            fallAux = false;
+            groundAux = true;
+        }
+    }
+
+    private void JumpStretchGroundImpact()
+    {
+        // ground
+        if (groundAux)
+        {
+            animator.SetTrigger("groundImpact");
+            groundAux = false;
         }
     }
 }

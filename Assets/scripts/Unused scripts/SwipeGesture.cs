@@ -15,7 +15,8 @@ public class SwipeGesture : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Ended) {
+        if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Ended)
+        {
             Vector2 endPosition = Input.GetTouch(0).position;
             Vector2 delta = endPosition - startPosition;
 
@@ -30,13 +31,15 @@ public class SwipeGesture : MonoBehaviour
                 if (angle < 0) angle = angle * -1.0f;
                 //Debug.Log("Distance: " + dist + " Angle: " + angle + " Speed: " + speed);
 
-                if (dist > 300 && angle < 10 && speed > 1000) {
+                if (dist > 300 && angle < 10 && speed > 1000)
+                {
                     // Do something related to the swipe
                 }
             }
         }
 
-        if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began) {
+        if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
+        {
             startPosition = Input.GetTouch(0).position;
             startTime = Time.time;
         }
