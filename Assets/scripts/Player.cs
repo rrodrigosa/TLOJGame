@@ -38,9 +38,10 @@ public class Player : MonoBehaviour
     private int jumpCounter = 0; // first or second jump
     private bool canMove = true; // if the user can move
 
-    // jump animation scale
-    private bool fallAux;
-    private bool groundAux;
+    // animation auxiliaries
+    private bool fallAux = true; // because character starts in the air
+    private bool groundAux = false;
+    private bool runAux = false;
 
 
     // Start is called before the first frame update
@@ -71,7 +72,9 @@ public class Player : MonoBehaviour
         if (onGround)
         {
             jumpCounter = 0;
-            JumpStretchGroundImpact();
+            IsGrounded(true);
+            IsClimbing(false);
+            IsFalling(false);
         }
     }
 
@@ -80,7 +83,11 @@ public class Player : MonoBehaviour
         // horizontal
         if (canMove)
         {
+            IsRunning(true);
             rb.velocity = new Vector2(walkSpeed * Time.deltaTime, rb.velocity.y);
+        } else
+        {
+            IsRunning(false);
         }
     }
 
@@ -88,6 +95,7 @@ public class Player : MonoBehaviour
     {
         if (jumpPressed)
         {
+            // make sure this is called once, because FixedUpdate can happen multiple times between Updates
             jumpPressed = false;
             // first jump
             if (jumpCounter == 0)
@@ -95,7 +103,9 @@ public class Player : MonoBehaviour
 
                 JumpDustParticle();
                 JumpAction();
-                JumpStretchUp();
+                IsGrounded(false);
+                IsClimbing(true);
+                IsFalling(false);
                 canMove = true;
 
             }
@@ -107,7 +117,11 @@ public class Player : MonoBehaviour
                 {
                     FindObjectOfType<RippleEffect>().Emit(Camera.main.WorldToViewportPoint(transform.position)); // shader
                     JumpAction();
-                    JumpStretchUp();
+                    IsGrounded(false);
+                    IsClimbing(true);
+                    IsFalling(false);
+
+                    //animator.Play("JumpUp", 0, 0.25f);
                 }
             }
         }
@@ -126,16 +140,18 @@ public class Player : MonoBehaviour
         if (rb.velocity.y < 0)
         {
             rb.velocity += Vector2.up * Physics2D.gravity.y * (fallMultiplier - 1) * Time.deltaTime;
-            if (!onGround)
-            {
-                JumpStretchDown();
-            }
+            IsGrounded(false);
+            IsClimbing(false);
+            IsFalling(true);
         }
 
         // climbing
         else if (rb.velocity.y > 0 && !Input.GetButton("Jump") && !Input.GetMouseButton(0))
         {
             rb.velocity += Vector2.up * Physics2D.gravity.y * (lowJumpMultiplier - 1) * Time.deltaTime;
+            IsGrounded(false);
+            IsClimbing(true);
+            IsFalling(false);
         }
     }
 
@@ -249,34 +265,79 @@ public class Player : MonoBehaviour
         }
     }
 
-    private void JumpStretchUp()
+    //private void JumpStretchUp(bool state)
+    //{
+    //    fallAux = true;
+    //    // climb
+    //    if (rb.velocity.y > 0)
+    //    {
+    //        Debug.Log("Up");
+    //        //animator.SetTrigger("jumpUp");
+
+    //        animator.SetBool("isClimbing", state);
+    //    }
+    //}
+
+    //private void JumpStretchDown(bool state)
+    //{
+    //    // fall
+    //    if (fallAux)
+    //    {
+    //        Debug.Log("Fall");
+    //        //animator.SetTrigger("jumpDown");
+    //        fallAux = false;
+    //        groundAux = true;
+
+    //        animator.SetBool("isFalling", state);
+    //    }
+    //}
+
+    //private void JumpStretchGroundImpact(bool state)
+    //{
+    //    // ground
+    //    if (groundAux)
+    //    {
+    //        Debug.Log("Ground");
+    //        //animator.SetTrigger("groundImpact");
+    //        groundAux = false;
+    //        fallAux = true;
+    //        runAux = true;
+
+    //        animator.SetBool("isGrounded", state);
+    //    }
+    //}
+
+    //private void RunAnimation(bool state)
+    //{
+    //    // run
+    //    if (runAux)
+    //    {
+    //        Debug.Log("Run");
+    //        runAux = false;
+    //        //animator.SetTrigger("run");
+
+    //        animator.SetBool("isRunning", state);
+    //    }
+    //}
+
+    private void IsGrounded(bool state)
     {
-        fallAux = true;
-        // climb
-        if (rb.velocity.y > 0)
-        {
-            animator.SetTrigger("jumpUp");
-        }
+        animator.SetBool("isGrounded", state);
     }
 
-    private void JumpStretchDown()
+    private void IsRunning(bool state)
     {
-        // fall
-        if (fallAux)
-        {
-            animator.SetTrigger("jumpDown");
-            fallAux = false;
-            groundAux = true;
-        }
+        animator.SetBool("isRunning", state);
     }
 
-    private void JumpStretchGroundImpact()
+    private void IsFalling(bool state)
     {
-        // ground
-        if (groundAux)
-        {
-            animator.SetTrigger("groundImpact");
-            groundAux = false;
-        }
+        animator.SetBool("isFalling", state);
     }
+
+    private void IsClimbing(bool state)
+    {
+        animator.SetBool("isClimbing", state);
+    }
+
 }
