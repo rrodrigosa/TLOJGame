@@ -73,7 +73,7 @@ public class Player : MonoBehaviour
         {
             jumpCounter = 0;
             IsGrounded(true);
-            IsClimbing(false);
+            IsJumping(false);
             IsFalling(false);
         }
     }
@@ -104,7 +104,7 @@ public class Player : MonoBehaviour
                 JumpDustParticle();
                 JumpAction();
                 IsGrounded(false);
-                IsClimbing(true);
+                IsJumping(true);
                 IsFalling(false);
                 canMove = true;
 
@@ -118,10 +118,9 @@ public class Player : MonoBehaviour
                     FindObjectOfType<RippleEffect>().Emit(Camera.main.WorldToViewportPoint(transform.position)); // shader
                     JumpAction();
                     IsGrounded(false);
-                    IsClimbing(true);
+                    IsJumping(true);
                     IsFalling(false);
-
-                    //animator.Play("JumpUp", 0, 0.25f);
+                    animator.Play("Jump", 0, 0f);
                 }
             }
         }
@@ -141,7 +140,7 @@ public class Player : MonoBehaviour
         {
             rb.velocity += Vector2.up * Physics2D.gravity.y * (fallMultiplier - 1) * Time.deltaTime;
             IsGrounded(false);
-            IsClimbing(false);
+            IsJumping(false);
             IsFalling(true);
         }
 
@@ -150,7 +149,7 @@ public class Player : MonoBehaviour
         {
             rb.velocity += Vector2.up * Physics2D.gravity.y * (lowJumpMultiplier - 1) * Time.deltaTime;
             IsGrounded(false);
-            IsClimbing(true);
+            IsJumping(true);
             IsFalling(false);
         }
     }
@@ -265,61 +264,6 @@ public class Player : MonoBehaviour
         }
     }
 
-    //private void JumpStretchUp(bool state)
-    //{
-    //    fallAux = true;
-    //    // climb
-    //    if (rb.velocity.y > 0)
-    //    {
-    //        Debug.Log("Up");
-    //        //animator.SetTrigger("jumpUp");
-
-    //        animator.SetBool("isClimbing", state);
-    //    }
-    //}
-
-    //private void JumpStretchDown(bool state)
-    //{
-    //    // fall
-    //    if (fallAux)
-    //    {
-    //        Debug.Log("Fall");
-    //        //animator.SetTrigger("jumpDown");
-    //        fallAux = false;
-    //        groundAux = true;
-
-    //        animator.SetBool("isFalling", state);
-    //    }
-    //}
-
-    //private void JumpStretchGroundImpact(bool state)
-    //{
-    //    // ground
-    //    if (groundAux)
-    //    {
-    //        Debug.Log("Ground");
-    //        //animator.SetTrigger("groundImpact");
-    //        groundAux = false;
-    //        fallAux = true;
-    //        runAux = true;
-
-    //        animator.SetBool("isGrounded", state);
-    //    }
-    //}
-
-    //private void RunAnimation(bool state)
-    //{
-    //    // run
-    //    if (runAux)
-    //    {
-    //        Debug.Log("Run");
-    //        runAux = false;
-    //        //animator.SetTrigger("run");
-
-    //        animator.SetBool("isRunning", state);
-    //    }
-    //}
-
     private void IsGrounded(bool state)
     {
         animator.SetBool("isGrounded", state);
@@ -335,9 +279,9 @@ public class Player : MonoBehaviour
         animator.SetBool("isFalling", state);
     }
 
-    private void IsClimbing(bool state)
+    private void IsJumping(bool state)
     {
-        animator.SetBool("isClimbing", state);
+        animator.SetBool("isJumping", state);
     }
 
 }
