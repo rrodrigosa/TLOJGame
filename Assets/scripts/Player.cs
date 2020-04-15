@@ -38,12 +38,6 @@ public class Player : MonoBehaviour
     private int jumpCounter = 0; // first or second jump
     private bool canMove = true; // if the user can move
 
-    // animation auxiliaries
-    private bool fallAux = true; // because character starts in the air
-    private bool groundAux = false;
-    private bool runAux = false;
-
-
     // Start is called before the first frame update
     void Start()
     {
