@@ -37,6 +37,7 @@ public class Player : MonoBehaviour
     private bool jumpPressed; // if input for jump was pressed
     private int jumpCounter = 0; // first or second jump
     private bool canMove = true; // if the user can move
+    private bool speedBoostAux = false;
 
     // Start is called before the first frame update
     void Start()
@@ -133,18 +134,30 @@ public class Player : MonoBehaviour
         if (rb.velocity.y < 0)
         {
             rb.velocity += Vector2.up * Physics2D.gravity.y * (fallMultiplier - 1) * Time.deltaTime;
-            IsGrounded(false);
-            IsJumping(false);
-            IsFalling(true);
+            // velocity.y prevents small bumps in the ground to trigger the jumping/falling animations under certain speeds.
+            // prevents ramp speed boosts to trigger jumping/falling animations.
+            // jumpCounter makes sure it's always called when player is in the air.
+            if ((rb.velocity.y < -2 || jumpCounter > 0) && !speedBoostAux)
+            {
+                IsGrounded(false);
+                IsJumping(false);
+                IsFalling(true);
+            }
         }
 
         // climbing
         else if (rb.velocity.y > 0 && !Input.GetButton("Jump") && !Input.GetMouseButton(0))
         {
             rb.velocity += Vector2.up * Physics2D.gravity.y * (lowJumpMultiplier - 1) * Time.deltaTime;
-            IsGrounded(false);
-            IsJumping(true);
-            IsFalling(false);
+            // velocity.y prevents small bumps in the ground to trigger the jumping/falling animations under certain speeds.
+            // prevents ramp speed boosts to trigger jumping/falling animations.
+            // jumpCounter makes sure it's always called when player is in the air.
+            if ((rb.velocity.y > 2 || jumpCounter > 0) && !speedBoostAux)
+            {
+                IsGrounded(false);
+                IsJumping(true);
+                IsFalling(false);
+            }
         }
     }
 
@@ -171,16 +184,19 @@ public class Player : MonoBehaviour
         if (collision.tag == "speed")
         {
             walkSpeed = 230;
+            speedBoostAux = true;
         }
 
         if (collision.tag == "speed2")
         {
             walkSpeed = 350;
+            speedBoostAux = true;
         }
 
         if (collision.tag == "default_speed")
         {
             walkSpeed = 200;
+            speedBoostAux = false;
         }
 
         // trap
