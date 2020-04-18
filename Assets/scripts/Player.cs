@@ -103,14 +103,12 @@ public class Player : MonoBehaviour
             // first jump
             if (jumpCounter == 0)
             {
-
                 JumpDustParticle();
                 JumpAction();
                 IsGrounded(false);
                 IsJumping(true);
                 IsFalling(false);
                 canMove = true;
-
             }
             // second jump
             else if (jumpCounter == 1)
