@@ -33,7 +33,7 @@ public class Player : MonoBehaviour
 
     // internal
     public bool doubleJump; // if double jump is enabled
-    public bool onGround;
+    private bool onGround; // if the player is touching the ground or not
     private bool jumpPressed; // if input for jump was pressed
     private int jumpCounter = 0; // first or second jump
     private bool canMove = true; // if the user can move
@@ -60,16 +60,24 @@ public class Player : MonoBehaviour
 
     private void GroundCheck()
     {
+        bool wasGrounded = onGround;
+        onGround = false;
+
         // check ground collision (with capsule collider)
         onGround = Physics2D.OverlapArea(new Vector2(transform.position.x - 0.25f, transform.position.y - 0.40f),
             new Vector2(transform.position.x + 0.25f, transform.position.y - 0.40f), groundLayers);
 
         if (onGround)
         {
-            jumpCounter = 0;
             IsGrounded(true);
             IsJumping(false);
             IsFalling(false);
+
+            // only happens on character landing
+            if (!wasGrounded)
+            {
+                jumpCounter = 0;
+            }
         }
     }
 
