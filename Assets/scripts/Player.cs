@@ -116,7 +116,7 @@ public class Player : MonoBehaviour
                 canMove = true;
                 if (doubleJump)
                 {
-                    FindObjectOfType<RippleEffect>().Emit(Camera.main.WorldToViewportPoint(transform.position)); // shader
+                    //FindObjectOfType<RippleEffect>().Emit(Camera.main.WorldToViewportPoint(transform.position)); // shader
                     JumpAction();
                     IsGrounded(false);
                     IsJumping(true);
