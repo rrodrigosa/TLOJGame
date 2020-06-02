@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Wind3
+  m_Name: WindUVDisplacement
   m_Shader: {fileID: -6465566751694194690, guid: ff9c5409929c84b48b15ca12a5210910,
     type: 3}
   m_ShaderKeywords: ETC1_EXTERNAL_ALPHA
