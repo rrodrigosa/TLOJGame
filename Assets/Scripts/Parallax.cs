@@ -6,25 +6,41 @@ public class Parallax : MonoBehaviour
 {
     private float length, startpos;
     public GameObject cam;
-    public float parallexEffect;
+    [Tooltip("0 = no effect \n1 = full effect (follows the camera)")]
+    [Range(0, 1)]
+    public float parallaxEffect;
+    [Tooltip("Needs SpriteRenderer component")]
+    public bool repeatBg = false;
 
     void Start()
     {
         startpos = transform.position.x;
-        length = GetComponent<SpriteRenderer>().bounds.size.x;
+        if (repeatBg)
+        {
+            length = GetComponent<SpriteRenderer>().bounds.size.x;
+        }
     }
     void Update()
     {
-        float temp = (cam.transform.position.x * (1 - parallexEffect));
-        float dist = (cam.transform.position.x * parallexEffect);
+        float temp = (cam.transform.position.x * (1 - parallaxEffect));
+        float dist = (cam.transform.position.x * parallaxEffect);
         transform.position = new Vector3(startpos + dist, transform.position.y, transform.position.z);
-        if (temp > startpos + length)
+
+        RepeatBackground(repeatBg, temp);
+    }
+
+    void RepeatBackground(bool value, float temp)
+    {
+        if (value)
         {
-            startpos += length;
-        }
-        else if (temp < startpos - length)
-        {
-            startpos -= length;
+            if (temp > startpos + length)
+            {
+                startpos += length;
+            }
+            else if (temp < startpos - length)
+            {
+                startpos -= length;
+            }
         }
     }
 }
